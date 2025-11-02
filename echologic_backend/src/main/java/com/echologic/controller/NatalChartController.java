@@ -7,8 +7,9 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.codehaus.jparsec.functors.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,27 +27,10 @@ public class NatalChartController {
     private final NatalChartService chartService = new NatalChartService();
 
     @PostMapping("/natal-chart")
-    public ResponseEntity<NatalChartResponse> getChart(@RequestBody NatalChartRequest request) {
-        // Convert request’s date/time + timezone to UTC LocalDateTime
-        LocalDateTime utcDateTime = convertToUTC(request.getBirthdate(), request.getTimeOfBirth(), request.getTimeZone());
-        NatalChartService.PlanetPosition sunPos = chartService.computeSunPosition(utcDateTime, request.getLatitude(), request.getLongitude());
+    public ResponseEntity<String> getChart(@RequestBody NatalChartRequest request) {
+        
 
-        NatalChartResponse resp = new NatalChartResponse();
-        resp.setName(request.getName());
-        resp.setBirthdate(request.getBirthdate());
-        resp.setTimeOfBirth(request.getTimeOfBirth());
-        resp.setLatitude(request.getLatitude());
-        resp.setLongitude(request.getLongitude());
-//        resp.setChartDetails(Map.of(sunPos.getPlanetName(), sunPos.toString()));
-
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(chartService.chartCalculation("1990-01-15", "vimal", 28.3680, 28.3680));
     }
 
-    private LocalDateTime convertToUTC(String date, String time, String timeZone) {
-        LocalDate ld = LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
-        LocalTime lt = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm"));
-        ZoneId zid = ZoneId.of(timeZone);  // e.g., "Asia/Kolkata"
-        ZonedDateTime zdt = ZonedDateTime.of(ld, lt, zid);
-        return zdt.withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
-    }
 }
